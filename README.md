@@ -50,7 +50,23 @@ engine). For plotting the heatmaps, `pip install mantissa-interpret[viz]`.
 Each takes a fitted model and a single `(C, H, W)` image and returns a 2-D
 heatmap normalized to `[0, 1]`, aligned to the input.
 
-<!-- Method details and worked math are filled in as each is added. -->
+### Occlusion — `occlusion_map`
+
+Slide a `patch`×`patch` window (filled with `fill`) across the image; at each
+position, hide that window and re-run the model. If the target class
+probability drops a lot, those pixels were important. The heatmap is the
+per-pixel average drop (overlapping windows blend), normalized to `[0, 1]`.
+
+```python
+from mantissa_interpret import occlusion_map
+heat = occlusion_map(net, image, target_class=7, patch=7, stride=3)
+```
+
+Only forward passes — model-agnostic and dead simple, but coarse (patch-sized)
+and its cost scales with the number of windows. All occluded copies are run in
+a single batched forward pass.
+
+<!-- saliency + grad-cam sections added next. -->
 
 ## Results
 

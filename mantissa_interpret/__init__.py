@@ -21,5 +21,7 @@ Three methods, cheapest first:
 >>> net = models.lenet5(); net.fit(X, y, epochs=3)
 >>> heat = grad_cam(net, image, target_class=7)   # (H, W) in [0, 1]
 """
+from .occlusion import occlusion_map
+
 __version__ = "0.1.0"
-__all__ = []
+__all__ = ["occlusion_map"]
