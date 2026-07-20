@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mantissa-interpret"
+version = "0.1.0"
+description = "CNN interpretability on the mantissa C engine: occlusion, saliency and Grad-CAM"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Tekin Ertekin" }]
+dependencies = [
+    "numpy>=1.20",
+    # Operates on a fitted mantissa_cnn.Sequential (its layers + backend), so
+    # everything runs through the same C engine the model was trained on.
+    # mantissa-cnn transitively pulls in mantissa-nn and the mantissa-core
+    # engine. For the dev layout, `pip install -e ../cnn`.
+    "mantissa-cnn>=0.2.2",
+]
+
+[project.optional-dependencies]
+viz = ["matplotlib>=3.5"]
+bench = ["matplotlib>=3.5"]
+dev = ["pytest>=7"]
+
+[project.urls]
+Homepage = "https://github.com/tekinertekin/mantissa-interpret"
+Base = "https://github.com/tekinertekin/mantissa-cnn"
+Engine = "https://github.com/tekinertekin/mantissa"
+
+[tool.setuptools]
+packages = ["mantissa_interpret"]
