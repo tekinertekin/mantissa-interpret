@@ -18,17 +18,41 @@ produced the prediction.
 
 ## New to interpretability?
 
-A CNN classifier maps an image to class scores. Two questions follow every
-prediction:
+A CNN classifier turns an image into a label — but the label alone hides *why*.
+**Interpretability** (here, *attribution*) recovers the missing reason: it marks
+**which parts of the input the model actually used** for a given class, as a
+heatmap laid over the image. That matters because a model can be right for the
+wrong reason — keying on a watermark, a background, or a dataset artifact
+instead of the object — and a bare accuracy number will never tell you. A
+heatmap will.
 
-- *Which pixels made it say "7"?* → **occlusion** and **saliency** give a
-  per-pixel answer.
-- *Which region did it focus on?* → **Grad-CAM** gives a per-region answer,
-  and — unlike raw saliency — it is **class-discriminative** (ask it about "3"
-  vs "7" on the same image and you get different maps).
+The most direct way to see this is to **hide part of the image and watch the
+prediction**. If covering a region makes the class probability collapse, that
+region carried the evidence; if nothing changes, it did not:
 
-These are the standard tools for debugging "right answer for the wrong reason"
-failures (a model keying on a watermark, a background, an artifact).
+![covering the important strokes of an 8 drops P(8) from 1.00 to 0.00; covering empty space leaves it at 1.00](https://raw.githubusercontent.com/tekinertekin/mantissa-interpret/main/assets/how_occlusion_works.png)
+
+That single experiment *is* the first method. The three methods here are three
+answers to "what did the model use?", trading detail for cost and clarity:
+
+- **Occlusion** — exactly the picture above, done everywhere: slide a patch
+  over the image and record how much each position, when hidden, drops the
+  class probability. No math beyond running the model forward; the price is one
+  forward pass per patch, and the resolution is patch-sized.
+- **Saliency** — instead of hiding pixels, ask calculus which pixels *matter*:
+  the gradient of the class score with respect to each input pixel. A large
+  gradient means "nudging this pixel would move the score a lot." It is
+  per-pixel sharp but noisy, and needs a single backward pass.
+- **Grad-CAM** — work inside the network. At a convolutional layer each channel
+  is a learned feature detector over a coarse grid; weight every channel by how
+  much raising its activation would raise the target score (its gradient),
+  add them up, and keep the positive part. The result is a smooth,
+  **class-discriminative** region — ask about "3" vs "7" on the same image and
+  the map moves — for one backward pass.
+
+Occlusion and saliency answer *which pixels*; Grad-CAM answers *which region,
+for this class*. Together they are the standard first tools for debugging a
+model that is right for the wrong reason.
 
 ## Install
 

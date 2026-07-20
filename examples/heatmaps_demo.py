@@ -77,6 +77,55 @@ def main():
     fig2.savefig(out2, dpi=130, bbox_inches="tight")
     print("saved", out2)
 
+    # "How occlusion works" — the mechanism. Covering the *right* region must
+    # collapse P(class) while covering empty space must not. MNIST digits are
+    # robust to a tiny patch, so we use a bigger window and pick, across a pool
+    # of test images, the patch that causes the largest real probability drop.
+    from matplotlib.patches import Rectangle
+    P = 12
+
+    def _occ_probs(im, cls):
+        C, H, W = im.shape
+        ys = list(range(0, H - P + 1, 2))
+        xs = list(range(0, W - P + 1, 2))
+        batch = np.repeat(im[None], len(ys) * len(xs), axis=0)
+        coords, k = [], 0
+        for y in ys:
+            for x in xs:
+                batch[k, :, y:y + P, x:x + P] = 0.0
+                coords.append((y, x)); k += 1
+        return coords, net.predict_proba(batch)[:, cls]
+
+    best = None
+    for i in range(min(60, len(Xte))):
+        c = int(net.predict(Xte[i][None])[0])
+        if c != int(yte[i]):
+            continue
+        bp = float(net.predict_proba(Xte[i][None])[0, c])
+        coords, probs = _occ_probs(Xte[i], c)
+        drop = bp - float(probs.min())
+        if best is None or drop > best[0]:
+            best = (drop, i, c, bp, coords, probs)
+    _, i7, cls, base_p, coords, probs = best
+    img = Xte[i7]
+    (y_i, x_i), p_i = coords[int(np.argmin(probs))], float(probs.min())   # biggest drop
+    (y_b, x_b), p_b = coords[int(np.argmax(probs))], float(probs.max())   # no drop
+    im_i = img.copy(); im_i[:, y_i:y_i + P, x_i:x_i + P] = 0.0
+    im_b = img.copy(); im_b[:, y_b:y_b + P, x_b:x_b + P] = 0.0
+    heat = occlusion_map(net, img, target_class=cls, patch=P, stride=2)
+    fig3, ax3 = plt.subplots(1, 4, figsize=(8.5, 2.4))
+    _overlay(ax3[0], img[0], None, f"input\nP({cls}) = {base_p:.2f}")
+    _overlay(ax3[1], im_i[0], None, f"cover a stroke\nP({cls}) = {p_i:.2f}")
+    ax3[1].add_patch(Rectangle((x_i - .5, y_i - .5), P, P, fill=False, ec="lime", lw=1.5))
+    _overlay(ax3[2], im_b[0], None, f"cover empty space\nP({cls}) = {p_b:.2f}")
+    ax3[2].add_patch(Rectangle((x_b - .5, y_b - .5), P, P, fill=False, ec="cyan", lw=1.5))
+    _overlay(ax3[3], img[0], heat, "importance map")
+    fig3.suptitle("How occlusion works: hide a region, watch the class probability", fontsize=11)
+    fig3.tight_layout()
+    out3 = os.path.join(os.path.dirname(__file__), os.pardir, "assets", "how_occlusion_works.png")
+    fig3.savefig(out3, dpi=130, bbox_inches="tight")
+    print("saved", out3)
+
 
 if __name__ == "__main__":
     main()
