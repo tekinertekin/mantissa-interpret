@@ -103,7 +103,29 @@ Coarse (conv-grid resolution) but smooth and genuinely **class-discriminative**
 
 ## Results
 
-<!-- Heatmap galleries on trained mantissa-cnn models go here. -->
+A LeNet-5 trained on an 8k-image MNIST subset with the mantissa C engine
+(3 epochs, **96% test accuracy**), then explained on held-out digits. Reproduce
+with `python examples/heatmaps_demo.py`.
+
+![occlusion, saliency and Grad-CAM heatmaps on MNIST digits](https://raw.githubusercontent.com/tekinertekin/mantissa-interpret/main/assets/heatmaps.png)
+
+Reading across a row, the three methods agree on the digit but differ exactly
+as their math predicts:
+
+- **occlusion** — coarse, patch-sized blobs on the strokes whose removal costs
+  the class the most;
+- **saliency** — the finest detail, tracing individual strokes, but visibly
+  noisy (the raw per-pixel gradient);
+- **Grad-CAM** — a smooth region over the class-defining strokes (the 7's
+  diagonal, the 2's base, the 9's loop), with the least clutter.
+
+Grad-CAM is also **class-discriminative** — ask it about a different target
+class on the *same* image and the map moves:
+
+![Grad-CAM for two different target classes on the same 7](https://raw.githubusercontent.com/tekinertekin/mantissa-interpret/main/assets/gradcam_classes.png)
+
+All of this — feature maps, gradients, the optimization-free attribution — comes
+out of the same low-precision C kernels the model was trained on.
 
 ## License
 
