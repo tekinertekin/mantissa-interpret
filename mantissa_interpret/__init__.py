@@ -22,6 +22,7 @@ Three methods, cheapest first:
 >>> heat = grad_cam(net, image, target_class=7)   # (H, W) in [0, 1]
 """
 from .occlusion import occlusion_map
+from .saliency import saliency_map
 
 __version__ = "0.1.0"
-__all__ = ["occlusion_map"]
+__all__ = ["occlusion_map", "saliency_map"]

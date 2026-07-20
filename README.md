@@ -66,7 +66,23 @@ Only forward passes — model-agnostic and dead simple, but coarse (patch-sized)
 and its cost scales with the number of windows. All occluded copies are run in
 a single batched forward pass.
 
-<!-- saliency + grad-cam sections added next. -->
+### Saliency — `saliency_map`
+
+The first-order sensitivity of the class score to each pixel is just its
+gradient. One forward pass primes the layers, we seed the gradient of the
+target *logit* (a one-hot vector), and backpropagate to the input — the same
+`backward` the model trains with, carried one step past the first layer's
+weights down to the pixels. The map is `|gradient|` reduced over channels.
+
+```python
+from mantissa_interpret import saliency_map
+heat = saliency_map(net, image, target_class=7)
+```
+
+Per-pixel and cheap (one backward pass), but high-frequency and noisy, and only
+weakly class-discriminative — good for "which strokes", not "which region".
+
+<!-- grad-cam section added next. -->
 
 ## Results
 
