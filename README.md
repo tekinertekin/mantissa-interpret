@@ -82,7 +82,24 @@ heat = saliency_map(net, image, target_class=7)
 Per-pixel and cheap (one backward pass), but high-frequency and noisy, and only
 weakly class-discriminative — good for "which strokes", not "which region".
 
-<!-- grad-cam section added next. -->
+### Grad-CAM — `grad_cam`
+
+At a convolutional layer, each channel is a learned feature detector over a
+coarse grid. Grad-CAM weights every channel by the average gradient of the
+target logit w.r.t. that channel's activation (how much "more of this feature"
+raises the class score), sums the channels with those weights, keeps the
+positive part, and upsamples to the image. We capture the layer's activation on
+the forward pass and backpropagate the logit down to that same layer for the
+gradient — then combine.
+
+```python
+from mantissa_interpret import grad_cam
+heat = grad_cam(net, image, target_class=7)      # last Conv2D by default
+```
+
+Coarse (conv-grid resolution) but smooth and genuinely **class-discriminative**
+— asking about different classes on the same image yields different maps.
+`target_layer` selects which conv layer to read (default: the last one).
 
 ## Results
 

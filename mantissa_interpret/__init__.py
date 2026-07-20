@@ -23,6 +23,7 @@ Three methods, cheapest first:
 """
 from .occlusion import occlusion_map
 from .saliency import saliency_map
+from .gradcam import grad_cam
 
 __version__ = "0.1.0"
-__all__ = ["occlusion_map", "saliency_map"]
+__all__ = ["occlusion_map", "saliency_map", "grad_cam"]
